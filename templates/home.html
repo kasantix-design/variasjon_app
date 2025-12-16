@@ -61,6 +61,14 @@
         }
     </style>
 </head>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/service-worker.js')
+      .then(reg => console.log("✅ Service Worker registrert:", reg))
+      .catch(err => console.log("❌ Service Worker-feil:", err));
+  }
+</script>
+
 <body>
     <h1>🧠 Variasjon</h1>
     <p>Velkommen! Trykk på en funksjon:</p>
