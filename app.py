@@ -274,7 +274,20 @@ def logout():
     session.pop("user_id", None)
     flash("Du er logget ut.")
     return redirect(url_for("home"))
+    def init_db():
+    with sqlite3.connect(DATABASE) as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+
 
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
+
