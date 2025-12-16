@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Lister</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📝 Lister</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Opprett ny liste -->
+    <form method="POST">
+        <label for="list_name">Navn på ny liste:</label>
+        <input type="text" name="list_name" required>
+
+        <label for="item">Legg til punkt:</label>
+        <input type="text" name="item">
+
+        <label for="source">Hent fra:</label>
+        <select name="source">
+            <option value="">-- Velg kilde --</option>
+            <option value="adl">ADL</option>
+            <option value="smaoppgaver">Små oppgaver</option>
+            <option value="storeoppgaver">Store oppgaver</option>
+        </select>
+
+        <button type="submit">➕ Lagre</button>
+    </form>
+
+    <hr>
+
+    <!-- Vis lagrede lister -->
+    <h2>Dine lister:</h2>
+    {% for liste in lister %}
+        <div class="liste">
+            <h3>{{ liste[1] }}</h3>
+            <ul>
+                {% for punkt in liste[2].split(';') if punkt %}
+                    <li>{{ punkt }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <p>Ingen lagrede lister enda.</p>
+    {% endfor %}
+
+    <p><a href="{{ url_for('home') }}">🏠 Tilbake til Hjem</a></p>
+</body>
+</html>
