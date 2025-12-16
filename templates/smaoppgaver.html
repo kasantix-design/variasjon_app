@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Små oppgaver</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📝 Små oppgaver</h1>
+
+    <p><a href="{{ url_for('logout') }}">🔓 Logg ut</a> | <a href="{{ url_for('home') }}">🏠 Hjem</a></p>
+
+    <!-- Legg til ny oppgave -->
+    <form method="POST">
+        <label for="oppgave">Ny oppgave:</label>
+        <input type="text" name="oppgave" id="oppgave" required>
+        <button type="submit">➕ Legg til</button>
+    </form>
+
+    <br>
+
+    <!-- Hent fra notater -->
+    <form method="POST">
+        <label for="notat_id">Hent fra notater:</label>
+        <select name="notat_id" id="notat_id" required>
+            <option value="">Velg notat...</option>
+            {% for notat in notater %}
+                <option value="{{ notat[0] }}">{{ notat[1][:40] }}...</option>
+            {% endfor %}
+        </select>
+        <button type="submit">📥 Legg til fra notat</button>
+    </form>
+
+    <hr>
+
+    <h2>🗒️ Dine små oppgaver</h2>
+    {% if oppgaver %}
+        <ul>
+        {% for oppgave in oppgaver %}
+            <li>{{ oppgave[1] }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ingen oppgaver registrert ennå.</p>
+    {% endif %}
+</body>
+</html>
