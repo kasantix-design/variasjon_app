@@ -1,75 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="no">
 <head>
     <meta charset="UTF-8">
     <title>Hjem – Variasjon</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 20px;
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-        }
-        <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-        <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/app-icon-192.png') }}">
-        <meta name="theme-color" content="#fbe4d8">
-
-
-        .icon-container {
-            text-align: center;
-        }
-
-        .icon-container img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            transition: transform 0.2s;
-        }
-
-        .icon-container img:hover {
-            transform: scale(1.1);
-        }
-
-        .icon-text {
-            margin-top: 8px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        body {
-            font-family: sans-serif;
-            background-color: #f3f3f3;
-            text-align: center;
-            padding: 30px;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .logout-link {
-            margin-top: 40px;
-            display: inline-block;
-        }
-    </style>
 </head>
-    <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/static/service-worker.js')
-      .then(reg => console.log("✅ Service Worker registrert:", reg))
-      .catch(err => console.log("❌ Service Worker-feil:", err));
-  }
-</script>
-
-<body>
+<body class="home-body">
     <h1>🧠 Variasjon</h1>
     <p>Velkommen! Trykk på en funksjon:</p>
 
@@ -78,14 +15,29 @@
         <div class="icon-container">
             <a href="{{ url_for(item.link) }}">
                 <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
-                <div class="icon-text">{{ item.name }}</div>
             </a>
+            <div class="icon-text">{{ item.name }}</div>
         </div>
         {% endfor %}
-    </div>
 
-    <div class="logout-link">
-        <a href="{{ url_for('logout') }}">🔓 Logg ut</a>
+        <!-- Rotekassen-knapp -->
+        <div class="icon-container">
+            <a href="{{ url_for('rotekassen') }}">
+                <img src="{{ url_for('static', filename='icons/rotekassen.png') }}" alt="Rotekassen">
+            </a>
+            <div class="icon-text">Rotekassen</div>
+        </div>
+
+        <!-- Logg ut-knapp med ikon -->
+        <div class="icon-container">
+            <a href="{{ url_for('logout') }}">
+                <img src="{{ url_for('static', filename='icons/loggut.png') }}" alt="Logg ut">
+            </a>
+            <div class="icon-text">Logg ut</div>
+        </div>
     </div>
 </body>
 </html>
+
+
+
