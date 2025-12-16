@@ -1,8 +1,8 @@
-
 from flask import Flask, render_template, redirect, request, url_for, session, flash
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'veldig_hemmelig_nøkkel'
@@ -46,10 +46,31 @@ def init_db():
         )
     """)
 
+    # Notater
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            content TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    # Fullførte oppgaver
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS completed_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            task TEXT,
+            timestamp TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     con.commit()
     con.close()
 
-# 🏠 Hjem
+# Hjem
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -70,12 +91,16 @@ def kalender():
         kilde = request.form.get("kilde", "")
         beskrivelse = request.form.get("beskrivelse", "")
 
-        if kilde:
-            if kilde == "adl":
-                cur.execute("SELECT task FROM adl_tasks WHERE user_id = ? LIMIT 1", (user_id,))
-                hentet = cur.fetchone()
-                if hentet:
-                    beskrivelse = hentet[0]
+        if kilde == "adl":
+            cur.execute("SELECT task FROM adl_tasks WHERE user_id = ? LIMIT 1", (user_id,))
+            hentet = cur.fetchone()
+            if hentet:
+                beskrivelse = hentet[0]
+        elif kilde == "notes":
+            cur.execute("SELECT content FROM notes WHERE user_id = ? LIMIT 1", (user_id,))
+            hentet = cur.fetchone()
+            if hentet:
+                beskrivelse = hentet[0]
 
         cur.execute("""
             INSERT INTO kalender_avtaler (user_id, dato, tid, beskrivelse)
@@ -101,10 +126,6 @@ def slett_avtale(avtale_id):
     con.close()
     flash("Avtale slettet.")
     return redirect(url_for("kalender"))
-
-@app.route("/lister")
-def lister():
-    return render_template("lister.html")
 
 @app.route("/adl", methods=["GET", "POST"])
 def adl():
@@ -143,6 +164,10 @@ def delete_adl(task_id):
     flash("Oppgave fjernet.")
     return redirect(url_for("adl"))
 
+@app.route("/lister")
+def lister():
+    return render_template("lister.html")
+
 @app.route("/smaoppgaver")
 def smaoppgaver():
     return render_template("smaoppgaver.html")
@@ -151,11 +176,29 @@ def smaoppgaver():
 def storeoppgaver():
     return render_template("storeoppgaver.html")
 
-@app.route("/fullfort")
+@app.route("/fullfort", methods=["GET", "POST"])
 def fullfort():
-    return render_template("fullfort.html")
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
 
-# 🔐 Login
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        task = request.form["task"]
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        cur.execute("INSERT INTO completed_tasks (user_id, task, timestamp) VALUES (?, ?, ?)",
+                    (user_id, task, timestamp))
+        con.commit()
+
+    cur.execute("SELECT task, timestamp FROM completed_tasks WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
+    done_tasks = cur.fetchall()
+    con.close()
+    return render_template("fullfort.html", done_tasks=done_tasks)
+
+# Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -174,7 +217,7 @@ def login():
             flash("Feil brukernavn eller passord!")
     return render_template("login.html")
 
-# 🔐 Registrering
+# Registrering
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -194,7 +237,7 @@ def register():
             con.close()
     return render_template("register.html")
 
-# 🔐 Logout
+# Logout
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
