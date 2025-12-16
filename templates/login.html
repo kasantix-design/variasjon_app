@@ -59,10 +59,23 @@
             color: red;
             margin-top: 20px;
         }
+
+        .register-link {
+            margin-top: 20px;
+            display: block;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .register-link a {
+            color: #0000ee;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>🔐 Logg inn</h1>
+
     <form method="POST">
         <label for="username">Brukernavn:</label>
         <input type="text" name="username" required>
@@ -82,5 +95,9 @@
         </div>
       {% endif %}
     {% endwith %}
+
+    <div class="register-link">
+        👉 Har du ikke bruker? <a href="{{ url_for('register') }}">Registrer deg her</a>
+    </div>
 </body>
 </html>
