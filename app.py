@@ -12,6 +12,7 @@ def init_db():
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
 
+    # Brukere
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +20,19 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
+
+    # ADL-oppgaver
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS adl_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            task TEXT,
+            frequency TEXT,
+            days TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     con.commit()
     con.close()
 
@@ -35,9 +49,45 @@ def kalender():
 def lister():
     return render_template("lister.html")
 
-@app.route("/adl")
+# ✅ ADL-rute med GET og POST
+@app.route("/adl", methods=["GET", "POST"])
 def adl():
-    return render_template("adl.html")
+    if "user_id" not in session:
+        flash("Du må være innlogget for å bruke ADL-funksjonen.")
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    # Hvis bruker sender inn nytt skjema
+    if request.method == "POST":
+        task = request.form["task"]
+        frequency = request.form["frequency"]
+        days = ','.join(request.form.getlist("days")) if frequency == "ukentlig" else "alle"
+        cur.execute("INSERT INTO adl_tasks (user_id, task, frequency, days) VALUES (?, ?, ?, ?)",
+                    (user_id, task, frequency, days))
+        con.commit()
+
+    cur.execute("SELECT * FROM adl_tasks WHERE user_id = ?", (user_id,))
+    tasks = cur.fetchall()
+    con.close()
+    return render_template("adl.html", tasks=tasks)
+
+# ✅ Sletting av ADL-oppgaver
+@app.route("/adl/delete/<int:task_id>", methods=["POST"])
+def delete_adl(task_id):
+    if "user_id" not in session:
+        flash("Du må være innlogget for å bruke dette.")
+        return redirect(url_for("login"))
+
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    cur.execute("DELETE FROM adl_tasks WHERE id = ?", (task_id,))
+    con.commit()
+    con.close()
+    flash("Oppgave fjernet.")
+    return redirect(url_for("adl"))
 
 @app.route("/smaoppgaver")
 def smaoppgaver():
@@ -89,20 +139,4 @@ def register():
             flash("Bruker opprettet! Du kan nå logge inn.")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
-            flash("Brukernavn finnes allerede.")
-        finally:
-            con.close()
-
-    return render_template("register.html")
-
-# 🔐 Logout
-@app.route("/logout")
-def logout():
-    session.pop("user_id", None)
-    flash("Du er logget ut.")
-    return redirect(url_for("home"))
-
-# 🚀 Kjør appen
-if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+            flash("Brukernavn finn
