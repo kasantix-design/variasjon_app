@@ -1,49 +1,53 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>🗓️ Kalender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>🗓️ Kalender</h1>
 
-export default function KalenderScreen({ navigation }) {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Kalender</Text>
-      {/* Din kalenderlogikk kan bygges her */}
+    <p><a href="{{ url_for('home') }}">🏠 Tilbake til hjem</a></p>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Home')}
-      >
-        <Text style={styles.buttonText}>Hjem</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
+    <h2>Legg til ny avtale</h2>
+    <form method="POST" action="{{ url_for('kalender') }}">
+        <label for="dato">Dato:</label>
+        <input type="date" name="dato" required><br><br>
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fbe4d8',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 40,
-  },
-  button: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 4,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-});
+        <label for="tid">Tid:</label>
+        <input type="time" name="tid" required><br><br>
+
+        <label for="beskrivelse">Beskrivelse:</label>
+        <input type="text" name="beskrivelse" required><br><br>
+
+        <label for="kilde">Hent fra:</label>
+        <select name="kilde">
+            <option value="">Skriv selv</option>
+            <option value="adl">ADL</option>
+            <option value="notater">Notater</option>
+            <option value="lister">Lister</option>
+            <option value="smaoppgaver">Små oppgaver</option>
+            <option value="storeoppgaver">Store oppgaver</option>
+        </select><br><br>
+
+        <button type="submit">➕ Legg til</button>
+    </form>
+
+    <h2>Planlagte avtaler</h2>
+    {% if avtaler %}
+        <ul>
+        {% for avtale in avtaler %}
+            <li>
+                {{ avtale[1] }} {{ avtale[2] }} – {{ avtale[3] }}
+                <form method="POST" action="{{ url_for('slett_avtale', avtale_id=avtale[0]) }}" style="display:inline;">
+                    <button type="submit">🗑️</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ingen avtaler ennå.</p>
+    {% endif %}
+</body>
+</html>
