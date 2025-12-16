@@ -8,12 +8,10 @@ app = Flask(__name__)
 app.secret_key = 'veldig_hemmelig_nøkkel'
 DB_FILE = 'database.db'
 
-# 📦 Init database hvis den ikke finnes
 def init_db():
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
 
-    # Brukere
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,8 +19,6 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
-
-    # ADL-oppgaver
     cur.execute("""
         CREATE TABLE IF NOT EXISTS adl_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,8 +29,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
-
-    # Kalender-avtaler
     cur.execute("""
         CREATE TABLE IF NOT EXISTS kalender_avtaler (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,8 +39,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
-
-    # Notater
     cur.execute("""
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,8 +47,6 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
-
-    # Fullførte oppgaver
     cur.execute("""
         CREATE TABLE IF NOT EXISTS completed_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,11 +56,19 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS lists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT,
+            items TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
 
     con.commit()
     con.close()
 
-# Hjem
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -80,35 +78,34 @@ def kalender():
     if "user_id" not in session:
         flash("Du må være innlogget for å bruke kalenderen.")
         return redirect(url_for("login"))
-
     user_id = session["user_id"]
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
-
     if request.method == "POST":
         dato = request.form["dato"]
         tid = request.form["tid"]
         kilde = request.form.get("kilde", "")
         beskrivelse = request.form.get("beskrivelse", "")
-
+        hentet = None
         if kilde == "adl":
             cur.execute("SELECT task FROM adl_tasks WHERE user_id = ? LIMIT 1", (user_id,))
-            hentet = cur.fetchone()
-            if hentet:
-                beskrivelse = hentet[0]
         elif kilde == "notes":
             cur.execute("SELECT content FROM notes WHERE user_id = ? LIMIT 1", (user_id,))
+        elif kilde == "lister":
+            cur.execute("SELECT items FROM lists WHERE user_id = ? LIMIT 1", (user_id,))
+        elif kilde == "smaoppgaver":
+            cur.execute("SELECT content FROM notes WHERE user_id = ? LIMIT 1", (user_id,))
+        elif kilde == "storeoppgaver":
+            cur.execute("SELECT content FROM notes WHERE user_id = ? LIMIT 1", (user_id,))
+        if kilde:
             hentet = cur.fetchone()
             if hentet:
                 beskrivelse = hentet[0]
-
-        cur.execute("""
-            INSERT INTO kalender_avtaler (user_id, dato, tid, beskrivelse)
-            VALUES (?, ?, ?, ?)
-        """, (user_id, dato, tid, beskrivelse))
+        cur.execute("INSERT INTO kalender_avtaler (user_id, dato, tid, beskrivelse) VALUES (?, ?, ?, ?)",
+                    (user_id, dato, tid, beskrivelse))
         con.commit()
-
-    cur.execute("SELECT id, dato, tid, beskrivelse FROM kalender_avtaler WHERE user_id = ? ORDER BY dato, tid", (user_id,))
+    cur.execute("SELECT id, dato, tid, beskrivelse FROM kalender_avtaler WHERE user_id = ? ORDER BY dato, tid",
+                (user_id,))
     avtaler = cur.fetchall()
     con.close()
     return render_template("kalender.html", avtaler=avtaler)
@@ -118,7 +115,6 @@ def slett_avtale(avtale_id):
     if "user_id" not in session:
         flash("Du må være innlogget.")
         return redirect(url_for("login"))
-
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
     cur.execute("DELETE FROM kalender_avtaler WHERE id = ?", (avtale_id,))
@@ -132,11 +128,9 @@ def adl():
     if "user_id" not in session:
         flash("Du må være innlogget for å bruke ADL-funksjonen.")
         return redirect(url_for("login"))
-
     user_id = session["user_id"]
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
-
     if request.method == "POST":
         task = request.form["task"]
         frequency = request.form["frequency"]
@@ -144,7 +138,6 @@ def adl():
         cur.execute("INSERT INTO adl_tasks (user_id, task, frequency, days) VALUES (?, ?, ?, ?)",
                     (user_id, task, frequency, days))
         con.commit()
-
     cur.execute("SELECT * FROM adl_tasks WHERE user_id = ?", (user_id,))
     tasks = cur.fetchall()
     con.close()
@@ -155,7 +148,6 @@ def delete_adl(task_id):
     if "user_id" not in session:
         flash("Du må være innlogget for å bruke dette.")
         return redirect(url_for("login"))
-
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
     cur.execute("DELETE FROM adl_tasks WHERE id = ?", (task_id,))
@@ -164,9 +156,23 @@ def delete_adl(task_id):
     flash("Oppgave fjernet.")
     return redirect(url_for("adl"))
 
-@app.route("/lister")
+@app.route("/lister", methods=["GET", "POST"])
 def lister():
-    return render_template("lister.html")
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    if request.method == "POST":
+        title = request.form["title"]
+        items = request.form["items"]
+        cur.execute("INSERT INTO lists (user_id, title, items) VALUES (?, ?, ?)", (user_id, title, items))
+        con.commit()
+    cur.execute("SELECT title, items FROM lists WHERE user_id = ?", (user_id,))
+    lists = cur.fetchall()
+    con.close()
+    return render_template("lister.html", lists=lists)
 
 @app.route("/smaoppgaver")
 def smaoppgaver():
@@ -181,24 +187,20 @@ def fullfort():
     if "user_id" not in session:
         flash("Du må være innlogget.")
         return redirect(url_for("login"))
-
     user_id = session["user_id"]
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
-
     if request.method == "POST":
         task = request.form["task"]
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
         cur.execute("INSERT INTO completed_tasks (user_id, task, timestamp) VALUES (?, ?, ?)",
                     (user_id, task, timestamp))
         con.commit()
-
     cur.execute("SELECT task, timestamp FROM completed_tasks WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
     done_tasks = cur.fetchall()
     con.close()
     return render_template("fullfort.html", done_tasks=done_tasks)
 
-# Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -217,7 +219,6 @@ def login():
             flash("Feil brukernavn eller passord!")
     return render_template("login.html")
 
-# Registrering
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -237,15 +238,12 @@ def register():
             con.close()
     return render_template("register.html")
 
-# Logout
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
     flash("Du er logget ut.")
     return redirect(url_for("home"))
 
-# 🚀 Kjør appen
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
-
