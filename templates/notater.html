@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>📝 Notater</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📝 Notater</h1>
+
+    <p><a href="{{ url_for('home') }}">🏠 Tilbake til hjem</a></p>
+
+    <h2>➕ Legg til nytt notat</h2>
+    <form method="POST" action="{{ url_for('notater') }}">
+        <textarea name="content" rows="4" cols="50" required></textarea><br><br>
+        <button type="submit">Lagre notat</button>
+    </form>
+
+    <h2>📚 Dine notater</h2>
+    {% if notes %}
+        <ul>
+        {% for note in notes %}
+            <li>
+                {{ note[1] }}
+                <form method="POST" action="{{ url_for('slett_notat', note_id=note[0]) }}" style="display:inline;">
+                    <button type="submit">🗑️ Slett</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ingen notater ennå.</p>
+    {% endif %}
+</body>
+</html>
