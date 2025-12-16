@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Hjem – Variasjon</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="home-body">
+    <h1>🧠 Variasjon</h1>
+    <p>Velkommen! Trykk på en funksjon:</p>
+
+    <div class="grid">
+        {% for item in icons %}
+        <div class="icon-container">
+            <a href="{{ url_for(item.link) }}">
+                <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
+            </a>
+            <div class="icon-text">{{ item.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <p><a href="{{ url_for('logout') }}">🔓 Logg ut</a></p>
+</body>
+</html>
