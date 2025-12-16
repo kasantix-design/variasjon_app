@@ -20,21 +20,7 @@
         </div>
         {% endfor %}
 
-        <!-- Rotekassen-knapp -->
-        <div class="icon-container">
-            <a href="{{ url_for('rotekassen') }}">
-                <img src="{{ url_for('static', filename='icons/rotekassen.png') }}" alt="Rotekassen">
-            </a>
-            <div class="icon-text">Rotekassen</div>
-        </div>
-
-        <!-- Logg ut-knapp med ikon -->
-        <div class="icon-container">
-            <a href="{{ url_for('logout') }}">
-                <img src="{{ url_for('static', filename='icons/loggut.png') }}" alt="Logg ut">
-            </a>
-            <div class="icon-text">Logg ut</div>
-        </div>
+        
     </div>
 </body>
 </html>
