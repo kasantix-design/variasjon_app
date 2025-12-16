@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, redirect, request, url_for, session, flash
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -33,6 +34,18 @@ def init_db():
         )
     """)
 
+    # Kalender-avtaler
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS kalender_avtaler (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            dato TEXT,
+            tid TEXT,
+            beskrivelse TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     con.commit()
     con.close()
 
@@ -41,15 +54,58 @@ def init_db():
 def home():
     return render_template("home.html")
 
-@app.route("/kalender")
+@app.route("/kalender", methods=["GET", "POST"])
 def kalender():
-    return render_template("kalender.html")
+    if "user_id" not in session:
+        flash("Du må være innlogget for å bruke kalenderen.")
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        dato = request.form["dato"]
+        tid = request.form["tid"]
+        kilde = request.form.get("kilde", "")
+        beskrivelse = request.form.get("beskrivelse", "")
+
+        if kilde:
+            if kilde == "adl":
+                cur.execute("SELECT task FROM adl_tasks WHERE user_id = ? LIMIT 1", (user_id,))
+                hentet = cur.fetchone()
+                if hentet:
+                    beskrivelse = hentet[0]
+
+        cur.execute("""
+            INSERT INTO kalender_avtaler (user_id, dato, tid, beskrivelse)
+            VALUES (?, ?, ?, ?)
+        """, (user_id, dato, tid, beskrivelse))
+        con.commit()
+
+    cur.execute("SELECT id, dato, tid, beskrivelse FROM kalender_avtaler WHERE user_id = ? ORDER BY dato, tid", (user_id,))
+    avtaler = cur.fetchall()
+    con.close()
+    return render_template("kalender.html", avtaler=avtaler)
+
+@app.route("/kalender/slett/<int:avtale_id>", methods=["POST"])
+def slett_avtale(avtale_id):
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
+
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    cur.execute("DELETE FROM kalender_avtaler WHERE id = ?", (avtale_id,))
+    con.commit()
+    con.close()
+    flash("Avtale slettet.")
+    return redirect(url_for("kalender"))
 
 @app.route("/lister")
 def lister():
     return render_template("lister.html")
 
-# ✅ ADL-rute med GET og POST
 @app.route("/adl", methods=["GET", "POST"])
 def adl():
     if "user_id" not in session:
@@ -60,7 +116,6 @@ def adl():
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
 
-    # Hvis bruker sender inn nytt skjema
     if request.method == "POST":
         task = request.form["task"]
         frequency = request.form["frequency"]
@@ -74,7 +129,6 @@ def adl():
     con.close()
     return render_template("adl.html", tasks=tasks)
 
-# ✅ Sletting av ADL-oppgaver
 @app.route("/adl/delete/<int:task_id>", methods=["POST"])
 def delete_adl(task_id):
     if "user_id" not in session:
@@ -107,20 +161,17 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
         con = sqlite3.connect(DB_FILE)
         cur = con.cursor()
         cur.execute("SELECT id, password FROM users WHERE username=?", (username,))
         user = cur.fetchone()
         con.close()
-
         if user and check_password_hash(user[1], password):
             session["user_id"] = user[0]
             flash("Innlogging vellykket!")
             return redirect(url_for("home"))
         else:
             flash("Feil brukernavn eller passord!")
-
     return render_template("login.html")
 
 # 🔐 Registrering
@@ -130,7 +181,6 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         hashed_pw = generate_password_hash(password)
-
         con = sqlite3.connect(DB_FILE)
         cur = con.cursor()
         try:
@@ -139,4 +189,20 @@ def register():
             flash("Bruker opprettet! Du kan nå logge inn.")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
-            flash("Brukernavn finn
+            flash("Brukernavn finnes allerede.")
+        finally:
+            con.close()
+    return render_template("register.html")
+
+# 🔐 Logout
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    flash("Du er logget ut.")
+    return redirect(url_for("home"))
+
+# 🚀 Kjør appen
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
+
