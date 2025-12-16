@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Fullført – Dagens plan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>📘 Fullført</h1>
+
+    <p><a href="{{ url_for('home') }}">🏠 Tilbake til hjem</a></p>
+
+    <h2>🗓️ Plan for i dag</h2>
+
+    {% if tasks %}
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <form method="POST" action="{{ url_for('toggle_done', task_id=task[0]) }}">
+                        <button type="submit" class="done-button">
+                            {% if task[4] == 1 %}
+                                ✅
+                            {% else %}
+                                🔴
+                            {% endif %}
+                        </button>
+                        {{ task[2] }} ({{ task[3] }})
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ingen oppgaver registrert for i dag.</p>
+    {% endif %}
+
+</body>
+</html>
