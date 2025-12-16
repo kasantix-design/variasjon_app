@@ -59,10 +59,23 @@
             color: red;
             margin-top: 20px;
         }
+
+        .login-link {
+            margin-top: 20px;
+            display: block;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .login-link a {
+            color: #0000ee;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>📝 Registrering</h1>
+
     <form method="POST">
         <label for="username">Brukernavn:</label>
         <input type="text" name="username" required>
@@ -82,5 +95,9 @@
         </div>
       {% endif %}
     {% endwith %}
+
+    <div class="login-link">
+        👉 Allerede registrert? <a href="{{ url_for('login') }}">Logg inn her</a>
+    </div>
 </body>
 </html>
