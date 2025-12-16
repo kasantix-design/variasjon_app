@@ -84,8 +84,13 @@ def initialize_database():
     init_db()
     return "✅ Database initialized!"
 
+
+# Hjemmeside med ikoner
 @app.route("/")
 def home():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
     icons = [
         {"name": "ADL", "image": "icons/adl.png", "link": "adl"},
         {"name": "Kalender", "image": "icons/kalender.png", "link": "kalender"},
@@ -101,9 +106,50 @@ def home():
     return render_template("home.html", icons=icons)
 
 
-# ... resten av rutene du har skrevet (adl, kalender, notater, osv.) beholdes uendret ...
+# ✅ Dummy-ruter for alle lenker
+@app.route("/adl")
+def adl():
+    return "ADL-side"
 
-# Login / Register / Logout
+@app.route("/kalender")
+def kalender():
+    return "Kalender-side"
+
+@app.route("/lister")
+def lister():
+    return "Lister-side"
+
+@app.route("/notater")
+def notater():
+    return "Notater-side"
+
+@app.route("/smaoppgaver")
+def smaoppgaver():
+    return "Små oppgaver-side"
+
+@app.route("/storeoppgaver")
+def storeoppgaver():
+    return "Store oppgaver-side"
+
+@app.route("/fullfort")
+def fullfort():
+    return "Fullførte oppgaver"
+
+@app.route("/innstillinger")
+def innstillinger():
+    return "Innstillinger"
+
+@app.route("/rotekassen")
+def rotekassen():
+    return "Rotekassen"
+
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    flash("Du er logget ut.")
+    return redirect(url_for("login"))
+
+# 🔐 Login / Register
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -141,13 +187,7 @@ def register():
             con.close()
     return render_template("register.html")
 
-@app.route("/logout")
-def logout():
-    session.pop("user_id", None)
-    flash("Du er logget ut.")
-    return redirect(url_for("home"))
 
 if __name__ == "__main__":
     init_db()
-    app.run()
-
+    app.run(debug=True)
