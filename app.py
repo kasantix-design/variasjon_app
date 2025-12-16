@@ -84,7 +84,6 @@ def initialize_database():
     init_db()
     return "✅ Database initialized!"
 
-
 # Hjemmeside med ikoner
 @app.route("/")
 def home():
@@ -105,8 +104,7 @@ def home():
     ]
     return render_template("home.html", icons=icons)
 
-
-# ✅ Dummy-ruter for alle lenker
+# Dummy-ruter for alle lenker
 @app.route("/adl")
 def adl():
     return "ADL-side"
@@ -149,7 +147,7 @@ def logout():
     flash("Du er logget ut.")
     return redirect(url_for("login"))
 
-# 🔐 Login / Register
+# Login / Register
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -179,14 +177,13 @@ def register():
         try:
             cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
             con.commit()
-            flash("Bruker opprettet!")
+            flash("Bruker opprettet! Du kan nå logge inn.")
             return redirect(url_for("login"))
         except sqlite3.IntegrityError:
             flash("Brukernavn finnes allerede.")
         finally:
             con.close()
     return render_template("register.html")
-
 
 if __name__ == "__main__":
     init_db()
