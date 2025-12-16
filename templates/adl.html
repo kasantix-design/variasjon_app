@@ -1,0 +1,56 @@
+<!-- templates/adl.html -->
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>ADL-plan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>🧼 Daglige gjøremål (ADL)</h1>
+
+    <form method="POST">
+        <label for="task">Ny oppgave:</label>
+        <input type="text" id="task" name="task" required>
+        <label for="frequency">Hyppighet:</label>
+        <select name="frequency" id="frequency" required>
+            <option value="daglig">Daglig</option>
+            <option value="ukentlig">Spesifikke dager</option>
+        </select>
+        <div id="days" style="display:none;">
+            <label><input type="checkbox" name="days" value="man"> Man</label>
+            <label><input type="checkbox" name="days" value="tir"> Tir</label>
+            <label><input type="checkbox" name="days" value="ons"> Ons</label>
+            <label><input type="checkbox" name="days" value="tor"> Tor</label>
+            <label><input type="checkbox" name="days" value="fre"> Fre</label>
+            <label><input type="checkbox" name="days" value="lør"> Lør</label>
+            <label><input type="checkbox" name="days" value="søn"> Søn</label>
+        </div>
+        <button type="submit">➕ Legg til</button>
+    </form>
+
+    <h2>Aktive oppgaver</h2>
+    <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task[2] }} – {{ task[3] }}
+                <form action="{{ url_for('delete_adl', task_id=task[0]) }}" method="POST" style="display:inline;">
+                    <button type="submit">➖ Fjern</button>
+                </form>
+            </li>
+        {% else %}
+            <p>Ingen oppgaver enda.</p>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{{ url_for('home') }}">🏠 Tilbake til hjem</a></p>
+
+    <script>
+        const freq = document.getElementById("frequency");
+        const days = document.getElementById("days");
+        freq.addEventListener("change", () => {
+            days.style.display = freq.value === "ukentlig" ? "block" : "none";
+        });
+    </script>
+</body>
+</html>
