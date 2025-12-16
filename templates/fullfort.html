@@ -2,8 +2,38 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>Fullført – Dagens plan</title>
+    <title>✅ Fullført – Dagens plan</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .progress-bar {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 20px;
+            background-color: #4caf50;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+        }
+
+        .task-list li {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .done-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>📘 Fullført</h1>
@@ -13,10 +43,10 @@
     <h2>🗓️ Plan for i dag</h2>
 
     {% if tasks %}
-        <ul>
+        <ul class="task-list">
             {% for task in tasks %}
                 <li>
-                    <form method="POST" action="{{ url_for('toggle_done', task_id=task[0]) }}">
+                    <form method="POST" action="{{ url_for('toggle_done', task_id=task[0]) }}" style="display:inline;">
                         <button type="submit" class="done-button">
                             {% if task[4] == 1 %}
                                 ✅
@@ -29,6 +59,14 @@
                 </li>
             {% endfor %}
         </ul>
+
+        <!-- Progress bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ progress }}%;">
+                {{ progress }}%
+            </div>
+        </div>
+
     {% else %}
         <p>Ingen oppgaver registrert for i dag.</p>
     {% endif %}
