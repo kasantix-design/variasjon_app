@@ -104,42 +104,132 @@ def home():
     ]
     return render_template("home.html", icons=icons)
 
-# Dummy-ruter for alle lenker
-@app.route("/adl")
+# Ruter for hver side
+@app.route("/adl", methods=["GET", "POST"])
 def adl():
-    return "ADL-side"
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
 
-@app.route("/kalender")
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        task = request.form["task"]
+        frequency = request.form["frequency"]
+        days = ','.join(request.form.getlist("days")) if frequency == "ukentlig" else "alle"
+        cur.execute("INSERT INTO adl_tasks (user_id, task, frequency, days) VALUES (?, ?, ?, ?)",
+                    (user_id, task, frequency, days))
+        con.commit()
+
+    cur.execute("SELECT * FROM adl_tasks WHERE user_id = ?", (user_id,))
+    tasks = cur.fetchall()
+    con.close()
+    return render_template("adl.html", tasks=tasks)
+
+@app.route("/kalender", methods=["GET", "POST"])
 def kalender():
-    return "Kalender-side"
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
 
-@app.route("/lister")
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        dato = request.form["dato"]
+        tid = request.form["tid"]
+        beskrivelse = request.form["beskrivelse"]
+        cur.execute("INSERT INTO kalender_avtaler (user_id, dato, tid, beskrivelse) VALUES (?, ?, ?, ?)",
+                    (user_id, dato, tid, beskrivelse))
+        con.commit()
+
+    cur.execute("SELECT * FROM kalender_avtaler WHERE user_id = ?", (user_id,))
+    avtaler = cur.fetchall()
+    con.close()
+    return render_template("kalender.html", avtaler=avtaler)
+
+@app.route("/lister", methods=["GET", "POST"])
 def lister():
-    return "Lister-side"
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
 
-@app.route("/notater")
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        title = request.form["title"]
+        items = request.form["items"]
+        cur.execute("INSERT INTO lists (user_id, title, items) VALUES (?, ?, ?)", (user_id, title, items))
+        con.commit()
+
+    cur.execute("SELECT * FROM lists WHERE user_id = ?", (user_id,))
+    lists = cur.fetchall()
+    con.close()
+    return render_template("lister.html", lists=lists)
+
+@app.route("/notater", methods=["GET", "POST"])
 def notater():
-    return "Notater-side"
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        content = request.form["content"]
+        cur.execute("INSERT INTO notes (user_id, content) VALUES (?, ?)", (user_id, content))
+        con.commit()
+
+    cur.execute("SELECT content FROM notes WHERE user_id = ?", (user_id,))
+    notes = cur.fetchall()
+    con.close()
+    return render_template("notater.html", notes=notes)
 
 @app.route("/smaoppgaver")
 def smaoppgaver():
-    return "Små oppgaver-side"
+    return render_template("smaoppgaver.html")
 
 @app.route("/storeoppgaver")
 def storeoppgaver():
-    return "Store oppgaver-side"
+    return render_template("storeoppgaver.html")
 
-@app.route("/fullfort")
+@app.route("/fullfort", methods=["GET", "POST"])
 def fullfort():
-    return "Fullførte oppgaver"
+    if "user_id" not in session:
+        flash("Du må være innlogget.")
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+
+    if request.method == "POST":
+        task = request.form["task"]
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        cur.execute("INSERT INTO completed_tasks (user_id, task, timestamp) VALUES (?, ?, ?)",
+                    (user_id, task, timestamp))
+        con.commit()
+
+    cur.execute("SELECT task, timestamp FROM completed_tasks WHERE user_id = ? ORDER BY timestamp DESC",
+                (user_id,))
+    done_tasks = cur.fetchall()
+    con.close()
+    return render_template("fullfort.html", done_tasks=done_tasks)
 
 @app.route("/innstillinger")
 def innstillinger():
-    return "Innstillinger"
+    return render_template("innstillinger.html")
 
 @app.route("/rotekassen")
 def rotekassen():
-    return "Rotekassen"
+    return render_template("rotekassen.html")
 
 @app.route("/logout")
 def logout():
