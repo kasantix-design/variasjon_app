@@ -291,3 +291,7 @@ if __name__ == "__main__":
     init_db()
     app.run(debug=True)
 
+@app.route('/initdb')
+def initialize_database():
+    init_db()
+    return "Database initialized!"
