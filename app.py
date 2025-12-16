@@ -95,8 +95,11 @@ def home():
         {"name": "Store oppgaver", "image": "icons/storeoppgaver.png", "link": "storeoppgaver"},
         {"name": "Fullført", "image": "icons/fullfort.png", "link": "fullfort"},
         {"name": "Innstillinger", "image": "icons/innstillinger.png", "link": "innstillinger"},
+        {"name": "Rotekassen", "image": "icons/rotekassen.png", "link": "rotekassen"},
+        {"name": "Logg ut", "image": "icons/loggut.png", "link": "logout"},
     ]
     return render_template("home.html", icons=icons)
+
 
 # ... resten av rutene du har skrevet (adl, kalender, notater, osv.) beholdes uendret ...
 
@@ -147,3 +150,4 @@ def logout():
 if __name__ == "__main__":
     init_db()
     app.run()
+
