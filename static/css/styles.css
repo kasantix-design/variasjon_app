@@ -1,0 +1,135 @@
+/* === GLOBAL VARIABLES === */
+:root {
+  --bg-color: #f5f4f7;              /* standard bakgrunn */
+  --accent-color: #d0bea3;          /* brukt i bunnmeny */
+  --icon-color: #1f1f1f;            /* ikon- og tekstfarge */
+  --highlight-color: #FFD700;       /* sprinkle/gull */
+  --button-bg: #bca588;             /* én tone mørkere enn bg */
+  --text-color: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1e1e1e;
+    --accent-color: #333;
+    --icon-color: #f0f0f0;
+    --text-color: #fff;
+    --button-bg: #444;
+  }
+}
+
+/* === GLOBAL RESET === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* === BODY === */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding-bottom: 60px; /* space for bottom nav */
+}
+
+/* === ICONS (SVG & BOXICONS) === */
+svg, .bx {
+  fill: var(--icon-color);
+  color: var(--icon-color);
+  width: 24px;
+  height: 24px;
+}
+
+/* === HEADER === */
+.top-nav {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.top-nav .home-link {
+  margin-left: auto;
+}
+
+/* === HAMBURGER === */
+#hamburger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* === MAIN === */
+main {
+  padding: 1rem;
+}
+
+/* === BOTTOM NAV === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--accent-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--button-bg);
+  z-index: 1000;
+}
+
+.bottom-nav a {
+  text-decoration: none;
+  color: var(--icon-color);
+  text-align: center;
+  font-size: 12px;
+}
+
+.bottom-nav i {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* === BUTTONS === */
+button,
+.btn {
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+button:hover,
+.btn:hover {
+  background-color: var(--icon-color);
+  color: var(--bg-color);
+}
+
+/* === SPARKLE EFFECT === */
+#sparkle-container {
+  position: fixed;
+  pointer-events: none;
+  font-size: 32px;
+  color: var(--highlight-color);
+  z-index: 9999;
+  opacity: 0;
+  animation: sparkle-fade 1s ease-out forwards;
+}
+
+@keyframes sparkle-fade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
