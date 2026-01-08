@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Variasjon App{% endblock %}</title>
+
+    <!-- Boxicons CDN -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <!-- JS -->
+    <script defer src="{% static 'js/main.js' %}"></script>
+</head>
+<body>
+
+    <!-- 🔼 Sparkle Effect Container -->
+    <div id="sparkle-container"></div>
+
+    <!-- 🔊 Lyd når noe er fullført -->
+    <audio id="done-sound" src="{% static 'audio/done-sound.mp3' %}" preload="auto"></audio>
+
+    <!-- 📱 Top Nav (hamburger + hjem) -->
+    <header class="top-nav">
+        <button id="hamburger-btn"><i class='bx bx-menu'></i></button>
+        <a href="{% url 'home' %}" class="home-link">
+            <i class='bx bx-home'></i>
+        </a>
+    </header>
+
+    <!-- 🧱 Innhold -->
+    <main>
+        {% block content %}
+        <!-- Sidens innhold kommer her -->
+        {% endblock %}
+    </main>
+
+    <!-- 🔽 Bunnmeny -->
+    <footer class="bottom-nav">
+        <a href="{% url 'calendar' %}"><i class='bx bx-calendar'></i><span>Kalender</span></a>
+        <a href="{% url 'lister' %}"><i class='bx bx-list-ul'></i><span>Lister</span></a>
+        <a href="{% url 'adl' %}"><i class='bx bx-bath'></i><span>ADL</span></a>
+        <a href="{% url 'settings' %}"><i class='bx bx-cog'></i><span>Innstillinger</span></a>
+    </footer>
+
+</body>
+</html>
